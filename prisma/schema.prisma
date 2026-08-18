@@ -1,0 +1,123 @@
+// ============================================================
+// Prisma Schema — AutoPrime E-Commerce
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── USERS ──────────────────────────────────────────────────
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String   // bcrypt hash
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders       Order[]
+  chatMessages ChatMessage[]
+
+  @@map("users")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+// ─── PRODUCTS ───────────────────────────────────────────────
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String   @unique
+  category    String
+  description String   @db.Text
+  price       Int      // harga dalam Rupiah (integer)
+  image       String   // path ke /images/products/...
+  stock       Int      @default(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems  OrderItem[]
+
+  @@map("products")
+}
+
+// ─── ORDERS ─────────────────────────────────────────────────
+model Order {
+  id              Int         @id @default(autoincrement())
+  userId          Int
+  user            User        @relation(fields: [userId], references: [id])
+
+  status          OrderStatus @default(PENDING)
+  totalAmount     Int
+
+  // Shipping details
+  recipientName   String
+  phone           String
+  address         String      @db.Text
+  city            String
+  province        String
+  postalCode      String
+
+  // Payment
+  paymentMethod   String      @default("Transfer Bank")
+  paidAt          DateTime?
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  items           OrderItem[]
+
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// ─── ORDER ITEMS ────────────────────────────────────────────
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Int     // harga saat transaksi
+
+  @@map("order_items")
+}
+
+// ─── CHAT MESSAGES ──────────────────────────────────────────
+// Riwayat chat antara customer (userId) dan sistem auto-reply admin.
+// sender = 'USER'  → pesan dari customer
+// sender = 'ADMIN' → balasan otomatis (auto-reply berbasis kata kunci)
+model ChatMessage {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  user      User        @relation(fields: [userId], references: [id])
+  sender    ChatSender
+  text      String      @db.Text
+  createdAt DateTime    @default(now())
+
+  @@index([userId])
+  @@map("chat_messages")
+}
+
+enum ChatSender {
+  USER
+  ADMIN
+}
