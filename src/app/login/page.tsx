@@ -33,11 +33,6 @@ function LoginForm() {
             <h1 className="text-2xl font-black text-gray-900">Masuk ke AutoPart</h1>
             <p className="text-sm text-gray-500 mt-1">Belanja sparepart jadi lebih mudah</p>
           </div>
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-6 text-xs text-blue-700">
-            <p className="font-semibold mb-1">Akun Demo:</p>
-            <p>Customer: <code>demo@autopart.id</code> / <code>demo123</code></p>
-            <p>Admin: <code>admin@autopart.id</code> / <code>admin123</code></p>
-          </div>
           {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl mb-5">⚠️ {error}</div>}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
